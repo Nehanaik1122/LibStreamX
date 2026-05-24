@@ -122,7 +122,24 @@ static int rb_null_guards(void) {
     ringbuf_free(NULL);
     return 0;
 }
+static int rb_write_into_full_buffer(void) {
+    ringbuf_t *rb = ringbuf_create(4);
+    TEST_ASSERT(rb != NULL, "ringbuf_create returned NULL");
 
+    const uint8_t fill[] = {1, 2, 3, 4};
+    uint32_t wrote = ringbuf_write(rb, fill, sizeof(fill));
+    TEST_ASSERT_EQ_INT(wrote, 4, "should write 4 bytes into empty buffer");
+    TEST_ASSERT_EQ_INT(rb->size, 4, "size should equal capacity after fill");
+
+    const uint8_t extra[] = {5, 6};
+    uint32_t wrote2 = ringbuf_write(rb, extra, sizeof(extra));
+    TEST_ASSERT_EQ_INT(wrote2, 0, "write into full buffer should return 0");
+    TEST_ASSERT_EQ_INT(rb->size, 4, "size must not exceed capacity");
+    TEST_ASSERT_EQ_INT(ringbuf_writable_space(rb), 0, "writable space must be 0");
+
+    ringbuf_free(rb);
+    return 0;
+}
 int test_ringbuf_run(void) {
     int failures = 0;
     printf("[ringbuf]\n");
@@ -133,5 +150,6 @@ int test_ringbuf_run(void) {
     TEST_RUN(rb_wraparound);
     TEST_RUN(rb_writable_space_and_clear);
     TEST_RUN(rb_null_guards);
+    TEST_RUN(rb_write_into_full_buffer);
     return failures;
 }
