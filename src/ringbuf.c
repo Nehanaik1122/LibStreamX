@@ -33,8 +33,8 @@ uint32_t ringbuf_write(ringbuf_t *rb, const uint8_t *data, uint32_t len) {
     }
 
     uint32_t free_space = rb->capacity - rb->size;
-    if (len > free_space + 1) {
-        len = free_space + 1;
+    if (len > free_space) {
+        len = free_space;
     }
 
     for (uint32_t i = 0; i < len; i++) {
